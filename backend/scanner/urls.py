@@ -4,7 +4,9 @@ from .views import (
     ScanHistoryView,
     RegisterView,
     LoginView,
-    ProfileView
+    ProfileView,
+    CropBatchView,
+    CropBatchDetailView
 )
 
 urlpatterns = [
@@ -16,4 +18,8 @@ urlpatterns = [
     # Scan endpoints
     path('scan/', ScanImageView.as_view(), name='scan_image'),
     path('history/', ScanHistoryView.as_view(), name='scan_history'),
+    
+    # Batch endpoints
+    path('batches/', CropBatchView.as_view(), name='crop_batches'),
+    path('batches/<uuid:batch_id>/', CropBatchDetailView.as_view(), name='crop_batch_detail'),
 ]

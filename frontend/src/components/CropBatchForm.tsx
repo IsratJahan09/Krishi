@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { saveBatch, getCurrentFarmer, generateId, addBadgeToFarmer, getBatchesByFarmer } from "@/utils/storage";
 import { toast } from "sonner";
 import { Wheat, ArrowLeft } from "lucide-react";
+import { getUser, batchAPI } from "@/lib/api";
 
 const divisions = [
   "ঢাকা / Dhaka",
@@ -30,7 +31,10 @@ const storageTypes = [
 
 const CropBatchForm = () => {
   const navigate = useNavigate();
+  const jwtUser = getUser();
   const currentFarmer = getCurrentFarmer();
+  const user = jwtUser || currentFarmer;
+  
   const [formData, setFormData] = useState({
     cropType: "ধান / Rice",
     weight: "",
@@ -39,45 +43,138 @@ const CropBatchForm = () => {
     district: "",
     storageType: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // For now, only local storage farmers can add batches
-  // JWT users will be redirected back to profile
-  if (!currentFarmer) {
-    toast.error("This feature is only available for registered farmers. Please register at /farmer first.");
-    navigate("/farmer/profile");
+  if (!user) {
+    navigate("/login");
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newBatch = {
-      id: generateId(),
-      farmerId: currentFarmer.id,
-      cropType: formData.cropType,
-      weight: parseFloat(formData.weight),
-      harvestDate: formData.harvestDate,
-      division: formData.division,
-      district: formData.district,
-      storageType: formData.storageType,
-      status: 'active' as const,
-      lossEvents: [],
-      createdAt: new Date().toISOString()
-    };
-
-    saveBatch(newBatch);
-    
-    // Check for badges
-    const farmerBatches = getBatchesByFarmer(currentFarmer.id);
-    if (farmerBatches.length === 0) {
-      addBadgeToFarmer(currentFarmer.id, "First Harvest Logged");
+    if (isSubmitting) {
+      console.log('Already submitting, ignoring...');
+      return;
     }
 
-    toast.success(currentFarmer.language === 'bangla' 
-      ? "ফসল ব্যাচ সফলভাবে যুক্ত হয়েছে!" 
-      : "Crop batch added successfully!");
-    
-    navigate("/farmer/profile");
+    console.log('=== Form Submission Started ===');
+    console.log('Form Data:', formData);
+    console.log('JWT User:', jwtUser);
+    console.log('Current Farmer:', currentFarmer);
+
+    // Validate required fields
+    if (!formData.division) {
+      console.error('Validation failed: Division is required');
+      toast.error(user.language === 'bangla' 
+        ? "বিভাগ নির্বাচন করুন" 
+        : "Please select division");
+      return;
+    }
+
+    if (!formData.storageType) {
+      console.error('Validation failed: Storage type is required');
+      toast.error(user.language === 'bangla' 
+        ? "সংরক্ষণের ধরন নির্বাচন করুন" 
+        : "Please select storage type");
+      return;
+    }
+
+    if (!formData.weight || parseFloat(formData.weight) <= 0) {
+      console.error('Validation failed: Invalid weight');
+      toast.error(user.language === 'bangla' 
+        ? "সঠিক ওজন লিখুন" 
+        : "Please enter valid weight");
+      return;
+    }
+
+    if (!formData.harvestDate) {
+      console.error('Validation failed: Harvest date is required');
+      toast.error(user.language === 'bangla' 
+        ? "ফসল কাটার তারিখ নির্বাচন করুন" 
+        : "Please select harvest date");
+      return;
+    }
+
+    if (!formData.district) {
+      console.error('Validation failed: District is required');
+      toast.error(user.language === 'bangla' 
+        ? "জেলার নাম লিখুন" 
+        : "Please enter district name");
+      return;
+    }
+
+    try {
+      console.log('Validation passed, proceeding with submission...');
+      setIsSubmitting(true);
+      
+      // If JWT user, save to Django backend
+      if (jwtUser) {
+        console.log('Saving to Django backend for JWT user...');
+        const batchData = {
+          crop_type: formData.cropType,
+          weight: parseFloat(formData.weight),
+          harvest_date: formData.harvestDate,
+          division: formData.division,
+          district: formData.district,
+          storage_type: formData.storageType,
+        };
+        console.log('Batch data to send:', batchData);
+        
+        const result = await batchAPI.create(batchData);
+        console.log('✓ Batch created successfully:', result);
+        
+        toast.success(user.language === 'bangla' 
+          ? "ফসল ব্যাচ সফলভাবে যুক্ত হয়েছে!" 
+          : "Crop batch added successfully!");
+      } 
+      // If local storage farmer, save to localStorage
+      else if (currentFarmer) {
+        console.log('Saving to localStorage for local farmer...');
+        const newBatch = {
+          id: generateId(),
+          farmerId: currentFarmer.id,
+          cropType: formData.cropType,
+          weight: parseFloat(formData.weight),
+          harvestDate: formData.harvestDate,
+          division: formData.division,
+          district: formData.district,
+          storageType: formData.storageType,
+          status: 'active' as const,
+          lossEvents: [],
+          createdAt: new Date().toISOString()
+        };
+        console.log('Batch to save:', newBatch);
+
+        saveBatch(newBatch);
+        console.log('✓ Batch saved to localStorage');
+        
+        // Check for badges
+        const farmerBatches = getBatchesByFarmer(currentFarmer.id);
+        if (farmerBatches.length === 0) {
+          addBadgeToFarmer(currentFarmer.id, "First Harvest Logged");
+        }
+
+        toast.success(user.language === 'bangla' 
+          ? "ফসল ব্যাচ সফলভাবে যুক্ত হয়েছে!" 
+          : "Crop batch added successfully!");
+      }
+      
+      console.log('Navigating to profile...');
+      navigate("/farmer/profile");
+    } catch (error: any) {
+      console.error('=== Error creating batch ===');
+      console.error('Error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      const errorMessage = error.message || error.toString();
+      toast.error(user.language === 'bangla'
+        ? `ব্যাচ তৈরি করতে ব্যর্থ হয়েছে: ${errorMessage}`
+        : `Failed to create batch: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -190,9 +287,14 @@ const CropBatchForm = () => {
                 </Select>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
                 <Wheat className="w-4 h-4 mr-2" />
-                <span className="font-bangla">ব্যাচ যোগ করুন</span>
+                <span className="font-bangla">
+                  {isSubmitting 
+                    ? (user.language === 'bangla' ? "সংরক্ষণ হচ্ছে..." : "Saving...") 
+                    : (user.language === 'bangla' ? "ব্যাচ যোগ করুন" : "Add Batch")
+                  }
+                </span>
               </Button>
             </form>
           </CardContent>

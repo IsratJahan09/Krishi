@@ -149,3 +149,49 @@ export const scanAPI = {
     return result;
   },
 };
+
+// Batch APIs
+export const batchAPI = {
+  getAll: async () => {
+    console.log('[API] Fetching all batches from /batches/');
+    const result = await apiRequest('/batches/');
+    console.log('[API] Batches response:', result);
+    return result;
+  },
+  
+  create: async (batchData: {
+    crop_type: string;
+    weight: number;
+    harvest_date: string;
+    division: string;
+    district: string;
+    storage_type: string;
+  }) => {
+    console.log('[API] Creating batch:', batchData);
+    const result = await apiRequest('/batches/', {
+      method: 'POST',
+      body: JSON.stringify(batchData),
+    });
+    console.log('[API] Batch created:', result);
+    return result;
+  },
+  
+  update: async (batchId: string, batchData: any) => {
+    console.log('[API] Updating batch:', batchId, batchData);
+    const result = await apiRequest(`/batches/${batchId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(batchData),
+    });
+    console.log('[API] Batch updated:', result);
+    return result;
+  },
+  
+  delete: async (batchId: string) => {
+    console.log('[API] Deleting batch:', batchId);
+    const result = await apiRequest(`/batches/${batchId}/`, {
+      method: 'DELETE',
+    });
+    console.log('[API] Batch deleted:', result);
+    return result;
+  },
+};

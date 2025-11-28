@@ -1,27 +1,93 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getCurrentFarmer, getBatchesByFarmer, clearCurrentFarmer, exportToJSON, exportToCSV } from "@/utils/storage";
 import { formatBanglaNumber } from "@/utils/banglaNumber";
-import { LogOut, Plus, Download, Award, Package, CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import { LogOut, Plus, Download, Award, Package, CheckCircle2, Loader2 } from "lucide-react";
 import BadgeSystem from "./BadgeSystem";
-import { getUser } from "@/lib/api";
+import { getUser, batchAPI } from "@/lib/api";
 
 const FarmerProfile = () => {
   const navigate = useNavigate();
   const jwtUser = getUser();
   const currentFarmer = getCurrentFarmer();
   const user = jwtUser || currentFarmer;
+  const [batches, setBatches] = useState<Array<{
+    id: string;
+    farmerId: string;
+    cropType: string;
+    weight: number;
+    harvestDate: string;
+    division: string;
+    district: string;
+    storageType: string;
+    status: string;
+    lossEvents: unknown[];
+    createdAt: string;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch batches on component mount
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchBatches = async () => {
+      try {
+        if (jwtUser) {
+          // Fetch from Django API for JWT users
+          const response = await batchAPI.getAll();
+          // Convert Django format to match localStorage format
+          const convertedBatches = response.map((batch: {
+            id: string;
+            crop_type: string;
+            weight: number;
+            harvest_date: string;
+            division: string;
+            district: string;
+            storage_type: string;
+            status: string;
+            created_at: string;
+          }) => ({
+            id: batch.id,
+            farmerId: user.id,
+            cropType: batch.crop_type,
+            weight: batch.weight,
+            harvestDate: batch.harvest_date,
+            division: batch.division,
+            district: batch.district,
+            storageType: batch.storage_type,
+            status: batch.status,
+            lossEvents: [],
+            createdAt: batch.created_at
+          }));
+          setBatches(convertedBatches);
+        } else if (currentFarmer) {
+          // Get from localStorage for local farmers
+          const localBatches = getBatchesByFarmer(currentFarmer.id);
+          setBatches(localBatches);
+        }
+      } catch (error) {
+        console.error('Error fetching batches:', error);
+        setBatches([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBatches();
+  }, [jwtUser, currentFarmer, user, navigate]);
 
   if (!user) {
-    navigate("/login");
     return null;
   }
 
   const isBangla = user.language === 'bangla';
   const userName = user.name;
-  const batches = currentFarmer ? getBatchesByFarmer(currentFarmer.id) : [];
   const activeBatches = batches.filter(b => b.status === 'active');
   const completedBatches = batches.filter(b => b.status === 'completed');
 
@@ -118,14 +184,18 @@ const FarmerProfile = () => {
               {isBangla ? "নতুন ব্যাচ যোগ করুন" : "Add New Batch"}
             </span>
           </Button>
-          <Button variant="outline" onClick={handleExportJSON}>
-            <Download className="w-4 h-4 mr-2" />
-            <span className="font-bangla">JSON</span>
-          </Button>
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            <span className="font-bangla">CSV</span>
-          </Button>
+          {batches.length > 0 && (
+            <>
+              <Button variant="outline" onClick={handleExportJSON}>
+                <Download className="w-4 h-4 mr-2" />
+                <span className="font-bangla">JSON</span>
+              </Button>
+              <Button variant="outline" onClick={handleExportCSV}>
+                <Download className="w-4 h-4 mr-2" />
+                <span className="font-bangla">CSV</span>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Badges Section */}
@@ -133,10 +203,26 @@ const FarmerProfile = () => {
 
         {/* Active Batches */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 font-bangla">
-            {isBangla ? "সক্রিয় ব্যাচ" : "Active Batches"}
-          </h2>
-          {activeBatches.length === 0 ? (
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold font-bangla">
+              {isBangla ? "সক্রিয় ব্যাচ" : "Active Batches"}
+            </h2>
+            {loading && (
+              <span className="text-sm text-muted-foreground font-bangla">
+                {isBangla ? "লোড হচ্ছে..." : "Loading..."}
+              </span>
+            )}
+          </div>
+          {loading ? (
+            <Card className="shadow-card">
+              <CardContent className="py-12 text-center">
+                <Loader2 className="w-12 h-12 mx-auto mb-4 text-primary animate-spin" />
+                <p className="text-muted-foreground font-bangla">
+                  {isBangla ? "ব্যাচ লোড হচ্ছে..." : "Loading batches..."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : activeBatches.length === 0 ? (
             <Card className="shadow-card">
               <CardContent className="py-12 text-center">
                 <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />

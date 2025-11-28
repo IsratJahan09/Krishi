@@ -37,7 +37,7 @@ const LandingHero = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+        <div className="max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center shadow-soft">
@@ -59,10 +59,10 @@ const LandingHero = () => {
           </p>
 
           {/* Feature icons - Swiper Carousel */}
-          <div className="max-w-5xl mx-auto mt-12 px-4">
+          <div className="max-w-6xl mx-auto mt-8 px-4">
             <Swiper
               modules={[Navigation, Pagination]}
-              spaceBetween={30}
+              spaceBetween={40}
               slidesPerView={1}
               navigation
               pagination={{ clickable: true, dynamicBullets: true }}

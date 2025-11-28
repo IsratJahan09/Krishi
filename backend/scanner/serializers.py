@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ScanResult, User
+from .models import ScanResult, User, CropBatch
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,3 +47,14 @@ class ScanResultSerializer(serializers.ModelSerializer):
         if obj.image and request:
             return request.build_absolute_uri(obj.image.url)
         return None
+
+
+class CropBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CropBatch
+        fields = [
+            'id', 'crop_type', 'weight', 'harvest_date', 
+            'division', 'district', 'storage_type', 'status',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']

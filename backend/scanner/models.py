@@ -49,3 +49,30 @@ class ScanResult(models.Model):
     
     def __str__(self):
         return f"{self.status} ({self.confidence:.2%})"
+
+
+class CropBatch(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='batches')
+    crop_type = models.CharField(max_length=100)
+    weight = models.FloatField()
+    harvest_date = models.DateField()
+    division = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
+    storage_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Crop Batch'
+        verbose_name_plural = 'Crop Batches'
+    
+    def __str__(self):
+        return f"{self.crop_type} - {self.weight}kg ({self.user.name})"

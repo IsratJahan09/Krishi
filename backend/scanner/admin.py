@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import User, ScanResult
+from .models import User, ScanResult, CropBatch
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -50,3 +50,35 @@ class ScanResultAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="400" style="border-radius: 8px; max-width: 100%;" />', obj.image.url)
         return '-'
     image_preview.short_description = 'Image Preview'
+
+
+@admin.register(CropBatch)
+class CropBatchAdmin(admin.ModelAdmin):
+    list_display = ['crop_type', 'user_info', 'weight_display', 'harvest_date', 'district', 'status', 'created_at']
+    list_filter = ['status', 'crop_type', 'division', 'created_at']
+    search_fields = ['crop_type', 'district', 'user__name', 'user__phone_number']
+    readonly_fields = ['id', 'created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Batch Information', {
+            'fields': ('id', 'user', 'crop_type', 'weight', 'harvest_date')
+        }),
+        ('Location', {
+            'fields': ('division', 'district')
+        }),
+        ('Storage', {
+            'fields': ('storage_type', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+    
+    def user_info(self, obj):
+        return f"{obj.user.name} ({obj.user.phone_number})"
+    user_info.short_description = 'Farmer'
+    
+    def weight_display(self, obj):
+        return f"{obj.weight} kg"
+    weight_display.short_description = 'Weight'
