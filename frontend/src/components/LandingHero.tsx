@@ -1,8 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sprout, CloudRain, Package, Leaf } from "lucide-react";
+import { Sprout, CloudRain, Package, Leaf, ArrowRight } from "lucide-react";
 import UserMenu from "./UserMenu";
 import { getUser } from "@/lib/api";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const LandingHero = () => {
   const navigate = useNavigate();
@@ -53,36 +58,101 @@ const LandingHero = () => {
             আবহাওয়া পূর্বাভাস এবং সংরক্ষণ পরামর্শের মাধ্যমে ফসলের ক্ষতি রোধ করুন
           </p>
 
-          {/* Feature icons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto mt-12">
-            <Link to="/weather-alert" className="block">
-              <div className="bg-card rounded-xl p-6 shadow-card transition-smooth hover:shadow-soft hover:-translate-y-1 cursor-pointer">
-                <CloudRain className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold text-card-foreground mb-2 font-bangla">আবহাওয়া সতর্কতা</h3>
-                <p className="text-sm text-muted-foreground font-bangla">৫ দিনের পূর্বাভাস</p>
-              </div>
-            </Link>
-            <Link to="/storage-advice" className="block">
-              <div className="bg-card rounded-xl p-6 shadow-card transition-smooth hover:shadow-soft hover:-translate-y-1 cursor-pointer">
-                <Package className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold text-card-foreground mb-2 font-bangla">সংরক্ষণ পরামর্শ</h3>
-                <p className="text-sm text-muted-foreground font-bangla">স্থানীয় পরামর্শ</p>
-              </div>
-            </Link>
-            <Link to="/crop-protection" className="block">
-              <div className="bg-card rounded-xl p-6 shadow-card transition-smooth hover:shadow-soft hover:-translate-y-1 cursor-pointer">
-                <Sprout className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold text-card-foreground mb-2 font-bangla">ফসল রক্ষা</h3>
-                <p className="text-sm text-muted-foreground font-bangla">ক্ষতি প্রতিরোধ</p>
-              </div>
-            </Link>
-            <Link to="/crop-health-scan" className="block">
-              <div className="bg-card rounded-xl p-6 shadow-card transition-smooth hover:shadow-soft hover:-translate-y-1 cursor-pointer">
-                <Leaf className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold text-card-foreground mb-2 font-bangla">স্বাস্থ্য স্ক্যানার</h3>
-                <p className="text-sm text-muted-foreground font-bangla">এআই বিশ্লেষণ</p>
-              </div>
-            </Link>
+          {/* Feature icons - Swiper Carousel */}
+          <div className="max-w-5xl mx-auto mt-12 px-4">
+            <Swiper
+              modules={[Navigation, Pagination]}
+              spaceBetween={30}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true, dynamicBullets: true }}
+              loop={true}
+              speed={700}
+              breakpoints={{
+                640: {
+                  slidesPerView: 1,
+                },
+                768: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 3,
+                },
+              }}
+              className="feature-swiper"
+            >
+              <SwiperSlide>
+                <Link to="/weather-alert" className="block h-full">
+                  <div className="bg-card rounded-xl p-6 shadow-card transition-all duration-300 hover:shadow-soft hover:border-primary border-2 border-transparent cursor-pointer h-full flex flex-col">
+                    <div className="w-full aspect-video bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg mb-4 flex items-center justify-center">
+                      <CloudRain className="w-16 h-16 text-primary" />
+                    </div>
+                    <span className="inline-block bg-blue-100 text-primary px-4 py-2 rounded-full text-sm font-medium font-bangla mb-4 w-fit">
+                      আবহাওয়া
+                    </span>
+                    <h3 className="font-semibold text-card-foreground mb-2 font-bangla text-lg">আবহাওয়া সতর্কতা</h3>
+                    <p className="text-sm text-muted-foreground font-bangla mb-4 flex-grow">৫ দিনের পূর্বাভাস এবং রিয়েল-টাইম আবহাওয়া আপডেট পান</p>
+                    <button className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center -rotate-45">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </Link>
+              </SwiperSlide>
+
+              <SwiperSlide>
+                <Link to="/storage-advice" className="block h-full">
+                  <div className="bg-card rounded-xl p-6 shadow-card transition-all duration-300 hover:shadow-soft hover:border-primary border-2 border-transparent cursor-pointer h-full flex flex-col">
+                    <div className="w-full aspect-video bg-gradient-to-br from-green-100 to-green-200 rounded-lg mb-4 flex items-center justify-center">
+                      <Package className="w-16 h-16 text-primary" />
+                    </div>
+                    <span className="inline-block bg-green-100 text-primary px-4 py-2 rounded-full text-sm font-medium font-bangla mb-4 w-fit">
+                      সংরক্ষণ
+                    </span>
+                    <h3 className="font-semibold text-card-foreground mb-2 font-bangla text-lg">সংরক্ষণ পরামর্শ</h3>
+                    <p className="text-sm text-muted-foreground font-bangla mb-4 flex-grow">স্থানীয় পরামর্শ এবং ফসল সংরক্ষণের সেরা পদ্ধতি</p>
+                    <button className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center -rotate-45">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </Link>
+              </SwiperSlide>
+
+              <SwiperSlide>
+                <Link to="/crop-protection" className="block h-full">
+                  <div className="bg-card rounded-xl p-6 shadow-card transition-all duration-300 hover:shadow-soft hover:border-primary border-2 border-transparent cursor-pointer h-full flex flex-col">
+                    <div className="w-full aspect-video bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg mb-4 flex items-center justify-center">
+                      <Sprout className="w-16 h-16 text-primary" />
+                    </div>
+                    <span className="inline-block bg-yellow-100 text-primary px-4 py-2 rounded-full text-sm font-medium font-bangla mb-4 w-fit">
+                      সুরক্ষা
+                    </span>
+                    <h3 className="font-semibold text-card-foreground mb-2 font-bangla text-lg">ফসল রক্ষা</h3>
+                    <p className="text-sm text-muted-foreground font-bangla mb-4 flex-grow">ক্ষতি প্রতিরোধ এবং ফসল সুরক্ষার কার্যকর উপায়</p>
+                    <button className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center -rotate-45">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </Link>
+              </SwiperSlide>
+
+              <SwiperSlide>
+                <Link to="/crop-health-scan" className="block h-full">
+                  <div className="bg-card rounded-xl p-6 shadow-card transition-all duration-300 hover:shadow-soft hover:border-primary border-2 border-transparent cursor-pointer h-full flex flex-col">
+                    <div className="w-full aspect-video bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg mb-4 flex items-center justify-center">
+                      <Leaf className="w-16 h-16 text-primary" />
+                    </div>
+                    <span className="inline-block bg-emerald-100 text-primary px-4 py-2 rounded-full text-sm font-medium font-bangla mb-4 w-fit">
+                      স্ক্যানার
+                    </span>
+                    <h3 className="font-semibold text-card-foreground mb-2 font-bangla text-lg">স্বাস্থ্য স্ক্যানার</h3>
+                    <p className="text-sm text-muted-foreground font-bangla mb-4 flex-grow">এআই বিশ্লেষণ দিয়ে ফসলের স্বাস্থ্য পরীক্ষা করুন</p>
+                    <button className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center -rotate-45">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </Link>
+              </SwiperSlide>
+            </Swiper>
           </div>
 
           {/* CTA Buttons */}
@@ -101,14 +171,14 @@ const LandingHero = () => {
           </div>
           
           {/* Quick Links */}
-          <div className="mt-8 text-sm text-muted-foreground">
-            <a 
-              href="/farmer/profile" 
+          <div className="mt-8">
+            <Button
+              variant="ghost"
               onClick={handleDashboardClick}
-              className="hover:text-primary transition-colors font-bangla cursor-pointer"
+              className="text-muted-foreground hover:text-primary transition-colors font-bangla"
             >
               কৃষক ড্যাশবোর্ড
-            </a>
+            </Button>
           </div>
         </div>
       </div>

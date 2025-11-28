@@ -159,3 +159,85 @@ All colors MUST be HSL.
     transition: var(--transition-smooth);
   }
 }
+
+/* Swiper Custom Styles */
+.feature-swiper {
+  padding-bottom: 50px !important;
+}
+
+.feature-swiper .swiper-pagination {
+  bottom: 10px !important;
+}
+
+.feature-swiper .swiper-pagination-bullet {
+  width: 13px;
+  height: 13px;
+  background: hsl(var(--primary));
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.feature-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.feature-swiper .swiper-button-prev,
+.feature-swiper .swiper-button-next {
+  color: hsl(var(--primary));
+  width: 40px;
+  height: 40px;
+  background: hsl(var(--card));
+  border-radius: 50%;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-smooth);
+}
+
+.feature-swiper .swiper-button-prev:hover,
+.feature-swiper .swiper-button-next:hover {
+  background: hsl(var(--primary));
+  color: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.feature-swiper .swiper-button-prev::after,
+.feature-swiper .swiper-button-next::after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 768px) {
+  .feature-swiper .swiper-button-prev,
+  .feature-swiper .swiper-button-next {
+    display: none;
+  }
+}
+
+/* Animation for float effect */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
