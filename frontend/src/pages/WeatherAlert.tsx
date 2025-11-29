@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CloudRain, AlertCircle, Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ForecastCard from "@/components/ForecastCard";
+import AutoGrainRiskAssessment from "@/components/AutoGrainRiskAssessment";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,46 +55,31 @@ const WeatherAlert = () => {
     setLoading(true);
 
     try {
-      const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
       
-      if (!API_KEY) {
-        // Fallback to demo data if no API key
-        console.warn("OpenWeatherMap API key not found. Using demo data.");
-        throw new Error("API key not configured");
-      }
-
-      // Real OpenWeatherMap API call
+      console.log('[Weather] Fetching from backend:', `${API_BASE_URL}/weather/?location=${location}`);
+      
+      // Call backend API
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${location},BD&appid=${API_KEY}&units=metric`
+        `${API_BASE_URL}/weather/?location=${encodeURIComponent(location)}`
       );
 
       if (!response.ok) {
-        throw new Error(`Weather API error: ${response.status}`);
+        throw new Error(`Backend API error: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('[Weather] Backend response:', data);
       
-      // Process 5-day forecast (one reading per day)
-      const forecast: WeatherData[] = [];
-      const processedDays = new Set();
-      
-      data.list.forEach((item: any) => {
-        const date = new Date(item.dt * 1000);
-        const dayKey = date.toDateString();
-        
-        // Take one reading per day (preferably around noon)
-        if (!processedDays.has(dayKey) && forecast.length < 5) {
-          processedDays.add(dayKey);
-          forecast.push({
-            date,
-            temperature: Math.round(item.main.temp),
-            humidity: item.main.humidity,
-            rainProbability: (item.pop || 0) * 100,
-            windSpeed: Math.round(item.wind.speed * 3.6), // m/s to km/h
-            condition: item.weather[0].main.toLowerCase(),
-          });
-        }
-      });
+      // Process forecast data from backend
+      const forecast: WeatherData[] = data.forecast.map((item: any) => ({
+        date: new Date(item.date),
+        temperature: item.temperature,
+        humidity: item.humidity,
+        rainProbability: item.rainProbability,
+        windSpeed: item.windSpeed,
+        condition: item.condition,
+      }));
 
       setWeatherData(forecast);
       
@@ -140,7 +126,7 @@ const WeatherAlert = () => {
       );
       setAdviceMessage(advice);
 
-      toast.error("আবহাওয়া API সংযুক্ত নয়। ডেমো ডেটা দেখানো হচ্ছে। .env ফাইলে VITE_OPENWEATHER_API_KEY যোগ করুন।");
+      toast.error("ব্যাকএন্ড API সংযুক্ত নয়। ডেমো ডেটা দেখানো হচ্ছে।");
     } finally {
       setLoading(false);
     }
@@ -238,6 +224,16 @@ const WeatherAlert = () => {
               আপনার এলাকার নাম লিখে আবহাওয়া পূর্বাভাস দেখুন
             </p>
           </Card>
+        )}
+
+        {/* Auto Grain Risk Assessment - NEW SECTION */}
+        {weatherData.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold font-bangla text-foreground mb-4">
+              ৫ দিনের আবহাওয়া অনুযায়ী সংরক্ষণ ঝুঁকি বিশ্লেষণ (স্বয়ংক্রিয়)
+            </h2>
+            <AutoGrainRiskAssessment weatherData={weatherData} />
+          </div>
         )}
 
         {/* Additional Tips */}
