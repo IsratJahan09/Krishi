@@ -472,47 +472,47 @@ class CropBatchView(APIView):
         print(f"Found {batches.count()} batches")
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-def post(self, request):
-    """Create a new batch"""
-    try:
-        print(f"=== Creating batch ===")
-        print(f"Request user: {request.user}")
-        print(f"User authenticated: {request.user.is_authenticated if hasattr(request.user, 'is_authenticated') else 'N/A'}")
-        print(f"User type: {type(request.user)}")
-        
-        if not hasattr(request.user, 'phone_number'):
-            print(f"ERROR: User object doesn't have phone_number attribute")
-            print(f"User attributes: {dir(request.user)}")
+    def post(self, request):
+        """Create a new batch"""
+        try:
+            print(f"=== Creating batch ===")
+            print(f"Request user: {request.user}")
+            print(f"User authenticated: {request.user.is_authenticated if hasattr(request.user, 'is_authenticated') else 'N/A'}")
+            print(f"User type: {type(request.user)}")
+            
+            if not hasattr(request.user, 'phone_number'):
+                print(f"ERROR: User object doesn't have phone_number attribute")
+                print(f"User attributes: {dir(request.user)}")
+                return Response({
+                    'error': 'Invalid user authentication'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            print(f"User phone: {request.user.phone_number}")
+            print(f"Request data: {request.data}")
+            
+            serializer = CropBatchSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                batch = serializer.save(user=request.user)
+                print(f"✓ Batch created: {batch.crop_type} - {batch.weight}kg")
+                return Response(
+                    CropBatchSerializer(batch).data,
+                    status=status.HTTP_201_CREATED
+                )
+            
+            print(f"✗ Validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            print(f"=== ERROR in CropBatchView.post ===")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
             return Response({
-                'error': 'Invalid user authentication'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        
-        print(f"User phone: {request.user.phone_number}")
-        print(f"Request data: {request.data}")
-        
-        serializer = CropBatchSerializer(data=request.data)   # ✅ FIXED INDENT
-        
-        if serializer.is_valid():
-            batch = serializer.save(user=request.user)
-            print(f"✓ Batch created: {batch.crop_type} - {batch.weight}kg")
-            return Response(
-                CropBatchSerializer(batch).data,
-                status=status.HTTP_201_CREATED
-            )
-        
-        print(f"✗ Validation errors: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    except Exception as e:
-        print(f"=== ERROR in CropBatchView.post ===")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error message: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CropBatchDetailView(APIView):
     permission_classes = [IsAuthenticated]
