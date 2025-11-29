@@ -25,11 +25,20 @@ export default function UserMenu() {
 
   if (!user) {
     return (
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
+      <div className="flex gap-2 sm:gap-3">
+        <Button 
+          variant="outline" 
+          size="default"
+          onClick={() => navigate('/login')}
+          className="font-bangla text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 h-auto min-h-[40px] sm:min-h-[44px] border-2 hover:scale-105 hover:shadow-md transition-all duration-300 ease-out hover:border-primary"
+        >
           লগইন
         </Button>
-        <Button size="sm" onClick={() => navigate('/register')}>
+        <Button 
+          size="default"
+          onClick={() => navigate('/register')}
+          className="font-bangla text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 h-auto min-h-[40px] sm:min-h-[44px] gradient-hero hover:scale-105 hover:shadow-lg transition-all duration-300 ease-out animate-pulse-subtle"
+        >
           নিবন্ধন
         </Button>
       </div>
