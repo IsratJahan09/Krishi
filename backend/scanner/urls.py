@@ -6,7 +6,8 @@ from .views import (
     LoginView,
     ProfileView,
     CropBatchView,
-    CropBatchDetailView
+    CropBatchDetailView,
+    WeatherForecastView
 )
 
 urlpatterns = [
@@ -22,4 +23,7 @@ urlpatterns = [
     # Batch endpoints
     path('batches/', CropBatchView.as_view(), name='crop_batches'),
     path('batches/<uuid:batch_id>/', CropBatchDetailView.as_view(), name='crop_batch_detail'),
+    
+    # Weather endpoint
+    path('weather/', WeatherForecastView.as_view(), name='weather_forecast'),
 ]

@@ -169,6 +169,9 @@ CORS_ALLOW_CREDENTIALS = True
 # HuggingFace Configuration
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
 
+# OpenWeatherMap Configuration
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
+
 # Model Selection for Crop Health Analysis
 # You can change this to use different models:
 # 

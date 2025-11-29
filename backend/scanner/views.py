@@ -561,3 +561,100 @@ class CropBatchDetailView(APIView):
                 {'error': 'Batch not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+# Weather Views
+class WeatherForecastView(APIView):
+    """
+    Get 5-day weather forecast for a location
+    No authentication required
+    """
+    
+    def get(self, request):
+        """Get weather forecast"""
+        location = request.GET.get('location', '')
+        
+        if not location:
+            return Response(
+                {'error': 'Location parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        print(f"=== Weather Request for: {location} ===")
+        
+        try:
+            # Get OpenWeatherMap API key
+            api_key = settings.OPENWEATHER_API_KEY
+            
+            if not api_key:
+                print("ERROR: OpenWeatherMap API key not configured")
+                return Response(
+                    {'error': 'Weather API not configured'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            # Call OpenWeatherMap API
+            url = f"https://api.openweathermap.org/data/2.5/forecast?q={location},BD&appid={api_key}&units=metric"
+            print(f"Calling OpenWeatherMap API: {url}")
+            
+            response = requests.get(url, timeout=10)
+            
+            if response.status_code != 200:
+                print(f"OpenWeatherMap API error: {response.status_code}")
+                print(f"Response: {response.text}")
+                return Response(
+                    {'error': f'Weather API error: {response.status_code}'},
+                    status=status.HTTP_502_BAD_GATEWAY
+                )
+            
+            data = response.json()
+            
+            # Process 5-day forecast (one reading per day)
+            forecast = []
+            processed_days = set()
+            
+            for item in data.get('list', []):
+                date = datetime.fromtimestamp(item['dt'])
+                day_key = date.strftime('%Y-%m-%d')
+                
+                # Take one reading per day (preferably around noon)
+                if day_key not in processed_days and len(forecast) < 5:
+                    processed_days.add(day_key)
+                    forecast.append({
+                        'date': date.isoformat(),
+                        'temperature': round(item['main']['temp']),
+                        'humidity': item['main']['humidity'],
+                        'rainProbability': round((item.get('pop', 0) * 100)),
+                        'windSpeed': round(item['wind']['speed'] * 3.6),  # m/s to km/h
+                        'condition': item['weather'][0]['main'].lower(),
+                        'description': item['weather'][0]['description']
+                    })
+            
+            print(f"✓ Successfully fetched {len(forecast)} days of forecast")
+            
+            return Response({
+                'location': location,
+                'forecast': forecast,
+                'timestamp': datetime.now().isoformat()
+            }, status=status.HTTP_200_OK)
+            
+        except requests.exceptions.Timeout:
+            print("ERROR: OpenWeatherMap API timeout")
+            return Response(
+                {'error': 'Weather API timeout'},
+                status=status.HTTP_504_GATEWAY_TIMEOUT
+            )
+        except requests.exceptions.RequestException as e:
+            print(f"ERROR: Request exception: {str(e)}")
+            return Response(
+                {'error': f'Weather API request failed: {str(e)}'},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+        except Exception as e:
+            print(f"ERROR: Unexpected error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Internal server error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
