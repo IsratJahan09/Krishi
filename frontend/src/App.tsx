@@ -16,6 +16,7 @@ import ConnectionTest from "./pages/ConnectionTest";
 import BlogPost from "./pages/BlogPost";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import RiskPrediction from "./pages/RiskPrediction";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/crop-protection/:slug" element={<BlogPost />} />
           <Route path="/crop-health-scan" element={<CropHealthScan />} />
           <Route path="/scan" element={<CropHealthScan />} />
+          <Route path="/risk-prediction" element={<RiskPrediction />} />
           <Route path="/test-connection" element={<ConnectionTest />} />
           
           {/* Authentication Routes */}

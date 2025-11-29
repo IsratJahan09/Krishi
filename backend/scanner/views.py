@@ -457,3 +457,68 @@ class ScanHistoryView(APIView):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Import risk prediction engine
+from .risk_prediction import risk_engine
+
+
+class RiskPredictionView(APIView):
+    """
+    API endpoint for crop storage risk prediction
+    POST /api/risk-prediction/
+    """
+    
+    def post(self, request):
+        """
+        Calculate ETCL and risk advisory
+        
+        Expected input:
+        {
+            "moisture": 15.5,
+            "temperature": 34,
+            "location": "Dhaka",
+            "batch_id": "BATCH-001" (optional)
+        }
+        """
+        
+        try:
+            # Extract input data
+            moisture = float(request.data.get('moisture', 0))
+            temperature = float(request.data.get('temperature', 0))
+            location = request.data.get('location', 'Dhaka')
+            batch_id = request.data.get('batch_id', None)
+            
+            # Validate input
+            if moisture <= 0 or moisture > 100:
+                return Response(
+                    {'error': 'Moisture must be between 0 and 100'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if temperature < -10 or temperature > 60:
+                return Response(
+                    {'error': 'Temperature must be between -10 and 60'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Calculate risk prediction
+            result = risk_engine.calculate_etcl(
+                moisture=moisture,
+                temperature=temperature,
+                location=location,
+                batch_id=batch_id
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except ValueError as e:
+            return Response(
+                {'error': f'Invalid input data: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Prediction failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
